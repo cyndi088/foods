@@ -14,6 +14,18 @@ BOT_NAME = 'foods'
 SPIDER_MODULES = ['foods.spiders']
 NEWSPIDER_MODULE = 'foods.spiders'
 
+"""MONGODB 配置链接"""
+# MONGO_HOST = '106.14.176.62'
+MONGO_HOST = '192.168.10.125'
+MONGO_PORT = 27017
+MONGO_DB = 'zhongshian'
+
+"""MYSQL 配置链接"""
+MYSQL_HOST = "192.168.10.121"
+MYSQL_USER = 'hzyg'
+MYSQL_PASSWORD = '@hzyq20180426..'
+MYSQL_DB = 'yfhunt'
+
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
 USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) ' \
@@ -65,9 +77,10 @@ COOKIES_ENABLED = True
 
 # Configure item pipelines
 # See https://doc.scrapy.org/en/latest/topics/item-pipeline.html
-# ITEM_PIPELINES = {
-#    'foods.pipelines.FoodsPipeline': 300,
-# }
+ITEM_PIPELINES = {
+    # 'foods.pipelines.FoodsPipeline': 300,
+    'foods.pipelines.MongodbPipeline': 350,
+}
 
 # Enable and configure the AutoThrottle extension (disabled by default)
 # See https://doc.scrapy.org/en/latest/topics/autothrottle.html
