@@ -40,9 +40,9 @@ class MongodbPipeline(object):
     def process_item(self, item, spider):
         cls = item.__class__.__name__
         if cls == 'FoodsItem':
-            self.save_cities(item)
+            self.save_foods(item)
         return item
 
-    def save_cities(self, item):
+    def save_foods(self, item):
         self.db['guojia'].save(dict(item))
 
