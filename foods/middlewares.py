@@ -5,7 +5,63 @@
 # See documentation in:
 # https://doc.scrapy.org/en/latest/topics/spider-middleware.html
 
+import random
+import requests
 from scrapy import signals
+from scrapy.exceptions import NotConfigured
+
+
+class RandomProxyMiddleware(object):
+    def __init__(self, settings):
+        self.proxies = self.get_ip()
+        print('*****************************************************************************')
+        print(self.proxies)
+        print('*****************************************************************************')
+        if not self.proxies:
+            raise NotConfigured
+        self.stats = {}.fromkeys(self.proxies, 0)
+        self.max_failed = 1
+
+    @classmethod
+    def from_crawler(cls, crawler):
+        if not crawler.settings.getbool('HTTPPROXY_ENABLED'):
+            raise NotConfigured
+        return cls(crawler.settings)
+
+    def process_request(self, request, spider):
+        request.meta['proxy'] = random.choice(self.proxies)
+        print('use %s as proxy' % request.meta['proxy'])
+
+    def process_response(self, request, response, spider):
+        cur_proxy = request.meta['proxy']
+        if response.status >= 400:
+            self.stats[cur_proxy] += 1
+        if self.stats[cur_proxy] >= self.max_failed:
+            self.remove_proxy(cur_proxy)
+        return response
+
+    def process_exception(self, request, exception, spider):
+        cur_proxy = request.meta['proxy']
+        print('raise exception:%s when use %s' % (exception, cur_proxy))
+        self.remove_proxy(cur_proxy)
+        del request.meta['proxy']
+        return request
+
+    def remove_proxy(self, proxy):
+        if proxy in self.proxies:
+            self.proxies.remove(proxy)
+            print('proxy %s removed from proxies list' % proxy)
+
+    @staticmethod
+    def get_ip():
+        url = 'http://api3.xiguadaili.com/ip/?tid=556976998158866&num=1000&delay=5&area=杭州&format=json'
+        res = requests.get(url)
+        data_list = res.json()
+        proxies_list = []
+        for data in data_list:
+            proxy = 'http://' + data['host'] + ':' + str(data['port'])
+            proxies_list.append(proxy)
+        return proxies_list
 
 
 class FoodsSpiderMiddleware(object):

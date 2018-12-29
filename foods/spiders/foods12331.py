@@ -13,69 +13,160 @@ class Foods12331Spider(scrapy.Spider):
     def parse(self, response):
         url = 'http://www.foods12331.cn/food/detail/findFoodByPage.json'
         res = response.xpath("//div[@class='secenddiv']/a/@onclick").extract()
-        # 食品类型
-        for food_type in res:
-            food_type = self.type_list(food_type)
+        try:
+            # 食品类型
+            # for food_type in res:
+                # food_type = self.type_list(food_type)
+                food_type = '粮食加工品'
+                # 合格
+                qualified_data = '{"food_type": \"%s\",' \
+                                 ' "check_flag": "合格",' \
+                                 ' "order_by": "1",' \
+                                 ' "pageNo": 0,' \
+                                 ' "pageSize": 20,' \
+                                 ' "bar_code": "",' \
+                                 ' "sampling_province": "",' \
+                                 ' "name_first_letter": null,' \
+                                 ' "food_name": null}' % food_type
+                qualified_data = {
+                    'filters': qualified_data
+                }
+                qualified_request = FormRequest(
+                    url=url, formdata=qualified_data, meta={'food_type': food_type}, callback=self.qualified_detail,
+                    dont_filter=False
+                )
 
-            # 合格
-            qualified_data = '{"food_type": \"%s\" , "check_flag": "合格", "order_by": "1", "pageNo": 0, ' \
-                             '"pageSize": 20,"bar_code": "", "sampling_province": "", "name_first_letter": null, ' \
-                             '"food_name": null}' % food_type
-            qualified_data = {
-                'filters': qualified_data
-            }
-            qualified_request = FormRequest(
-                url=url, formdata=qualified_data, callback=self.qualified_detail, dont_filter=False
-            )
+                # 不合格
+                unqualified_data = '{"food_type": \"%s\",' \
+                                   ' "check_flag": "不合格",' \
+                                   ' "order_by": "0",' \
+                                   ' "pageNo": 0,' \
+                                   ' "pageSize": 20,' \
+                                   ' "bar_code": "",' \
+                                   ' "sampling_province": "",' \
+                                   ' "name_first_letter": null,' \
+                                   ' "food_name": null}' % food_type
+                unqualified_data = {
+                    'filters': unqualified_data
+                }
+                unqualified_request = FormRequest(
+                    url=url, formdata=unqualified_data, meta={'food_type': food_type}, callback=self.unqualified_detail,
+                    dont_filter=False
+                )
 
-            # 不合格
-            unqualified_data = '{"food_type": \"%s\" , "check_flag": "不合格", "order_by": "0", "pageNo": 0, ' \
-                               '"pageSize": 20,"bar_code": "", "sampling_province": "", "name_first_letter": null, ' \
-                               '"food_name": null}' % food_type
-            unqualified_data = {
-                'filters': unqualified_data
-            }
-            unqualified_request = FormRequest(
-                url=url, formdata=unqualified_data, callback=self.unqualified_detail, dont_filter=False
-            )
+                yield qualified_request
 
-            yield qualified_request
+                # yield unqualified_request
 
-            yield unqualified_request
+        except Exception as e:
+            print(e)
 
     # 合格列表
     def qualified_detail(self, response):
+        url = response.url
+        food_type = response.meta['food_type']
         res = json.loads(response.text,  encoding='utf-8')
         items = res['resultData']['items']
+        current_nums = len(items)
+        pageNo = res['resultData']['index'] - 1
+        start = res['resultData']['start']
+        total = res['resultData']['total']
+        current_total = start + current_nums
+
         # 抽检详情url
         getResultUrl = 'http://www.foods12331.cn/food/detail/getResult.json'
-        for item in items:
-            formdata = {}
-            formdata['food_name'] = item['food_name']
-            formdata['production_name'] = item['production_name']
-            formdata['food_model'] = item['food_model']
-            request = FormRequest(
-                url=getResultUrl, formdata=formdata, callback=self.get_result, dont_filter=False
-            )
+        if items:
+            for item in items:
+                formdata = {}
+                formdata['food_name'] = item['food_name']
+                if item['production_name'] == '/':
+                    formdata['production_name'] = '——'
+                else:
+                    formdata['production_name'] = item['production_name']
+                formdata['food_model'] = item['food_model']
+                request = FormRequest(
+                    url=getResultUrl, formdata=formdata, callback=self.get_result, dont_filter=False
+                )
 
-            yield request
+                yield request
+
+            # 当抓取数量小于总数时，抓取下一页
+            if current_total < total:
+                pageNo += 1
+                # 合格
+                qualified_data = '{"food_type": \"%s\",' \
+                                 ' "check_flag": "合格",' \
+                                 ' "order_by": "1",' \
+                                 ' "pageNo": \"%d\",' \
+                                 ' "pageSize": 20,' \
+                                 ' "bar_code": "",' \
+                                 ' "sampling_province": "",' \
+                                 ' "name_first_letter": null,' \
+                                 ' "food_name": null}' % (food_type, pageNo)
+                qualified_data = {
+                    'filters': qualified_data
+                }
+                qualified_request = FormRequest(
+                    url=url, formdata=qualified_data, meta={'food_type': food_type}, callback=self.qualified_detail,
+                    dont_filter=False
+                )
+
+                yield qualified_request
+
+        else:
+            print('合格列表结束')
 
     # 不合格列表
     def unqualified_detail(self, response):
+        url = response.url
+        food_type = response.meta['food_type']
         res = json.loads(response.text, encoding='utf-8')
         items = res['resultData']['items']
+        current_nums = len(items)
+        pageNo = res['resultData']['index'] - 1
+        start = res['resultData']['start']
+        total = res['resultData']['total']
+        current_total = start + current_nums
+
         # 抽检详情url
         getResultUrl = 'http://www.foods12331.cn/food/detail/getResult.json'
-        for item in items:
-            formdata = {}
-            formdata['food_name'] = item['food_name']
-            formdata['production_name'] = item['production_name']
-            formdata['food_model'] = item['food_model']
-            request = FormRequest(
-                url=getResultUrl, formdata=formdata, callback=self.get_result, dont_filter=False
-            )
+        if items:
+            for item in items:
+                formdata = {}
+                formdata['food_name'] = item['food_name']
+                formdata['production_name'] = item['production_name']
+                formdata['food_model'] = item['food_model']
+                request = FormRequest(
+                    url=getResultUrl, formdata=formdata, callback=self.get_result, dont_filter=False
+                )
 
-            yield request
+                yield request
+
+            # 当抓取数量小于总数时，抓取下一页
+            if current_total < total:
+                pageNo += 1
+                # 不合格
+                unqualified_data = '{"food_type": \"%s\" ,' \
+                                   ' "check_flag": "不合格",' \
+                                   ' "order_by": "0",' \
+                                   ' "pageNo": \"%d\",' \
+                                   ' "pageSize": 20,' \
+                                   ' "bar_code": "",' \
+                                   ' "sampling_province": "",' \
+                                   ' "name_first_letter": null,' \
+                                   ' "food_name": null}' % (food_type, pageNo)
+                unqualified_data = {
+                    'filters': unqualified_data
+                }
+                unqualified_request = FormRequest(
+                    url=url, formdata=unqualified_data, meta={'food_type': food_type}, callback=self.unqualified_detail,
+                    dont_filter=False
+                )
+
+                yield unqualified_request
+
+        else:
+            print('不合格列表结束')
 
     # 抽检详情解析
     def get_result(self, response):
@@ -103,6 +194,9 @@ class Foods12331Spider(scrapy.Spider):
             food['remark'] = fd['remark']
             food['check_flag'] = fd['check_flag']
             food['data_source'] = fd['data_source']
+            print('***********************************')
+            print(food)
+            print('***********************************')
 
             yield food
 

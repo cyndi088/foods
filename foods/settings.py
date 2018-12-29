@@ -26,6 +26,8 @@ MYSQL_USER = 'hzyg'
 MYSQL_PASSWORD = '@hzyq20180426..'
 MYSQL_DB = 'yfhunt'
 
+"""REDIS 配置链接"""
+REDIS_URL = "redis://192.168.10.125:6379"
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
 USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) ' \
@@ -45,8 +47,12 @@ ROBOTSTXT_OBEY = False
 # CONCURRENT_REQUESTS_PER_DOMAIN = 16
 # CONCURRENT_REQUESTS_PER_IP = 16
 
+HTTPPROXY_ENABLED = False
+
 # Disable cookies (enabled by default)
 COOKIES_ENABLED = True
+
+HTTPERROR_ALLOWED_CODES = [401, 400, 500, 502]
 
 # Disable Telnet Console (enabled by default)
 # TELNETCONSOLE_ENABLED = False
@@ -65,9 +71,9 @@ COOKIES_ENABLED = True
 
 # Enable or disable downloader middlewares
 # See https://doc.scrapy.org/en/latest/topics/downloader-middleware.html
-# DOWNLOADER_MIDDLEWARES = {
-#    'foods.middlewares.FoodsDownloaderMiddleware': 543,
-# }
+DOWNLOADER_MIDDLEWARES = {
+   'foods.middlewares.RandomProxyMiddleware': 543,
+}
 
 # Enable or disable extensions
 # See https://doc.scrapy.org/en/latest/topics/extensions.html
