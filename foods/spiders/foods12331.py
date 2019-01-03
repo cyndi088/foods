@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import time
 import json
 import scrapy
 from ..items import FoodsItem
@@ -13,53 +14,48 @@ class Foods12331Spider(scrapy.Spider):
     def parse(self, response):
         url = 'http://www.foods12331.cn/food/detail/findFoodByPage.json'
         res = response.xpath("//div[@class='secenddiv']/a/@onclick").extract()
-        try:
-            # 食品类型
-            # for food_type in res:
-                # food_type = self.type_list(food_type)
-                food_type = '粮食加工品'
-                # 合格
-                qualified_data = '{"food_type": \"%s\",' \
-                                 ' "check_flag": "合格",' \
-                                 ' "order_by": "1",' \
-                                 ' "pageNo": 0,' \
-                                 ' "pageSize": 20,' \
-                                 ' "bar_code": "",' \
-                                 ' "sampling_province": "",' \
-                                 ' "name_first_letter": null,' \
-                                 ' "food_name": null}' % food_type
-                qualified_data = {
-                    'filters': qualified_data
-                }
-                qualified_request = FormRequest(
-                    url=url, formdata=qualified_data, meta={'food_type': food_type}, callback=self.qualified_detail,
-                    dont_filter=False
-                )
+        # 食品类型
+        for food_type in res:
+            food_type = self.type_list(food_type)
+            # 合格
+            qualified_data = '{"food_type": \"%s\",' \
+                             ' "check_flag": "合格",' \
+                             ' "order_by": "1",' \
+                             ' "pageNo": 0,' \
+                             ' "pageSize": 20,' \
+                             ' "bar_code": "",' \
+                             ' "sampling_province": "",' \
+                             ' "name_first_letter": null,' \
+                             ' "food_name": null}' % food_type
+            qualified_data = {
+                'filters': qualified_data
+            }
+            qualified_request = FormRequest(
+                url=url, formdata=qualified_data, meta={'food_type': food_type}, callback=self.qualified_detail,
+                dont_filter=False
+            )
 
-                # 不合格
-                unqualified_data = '{"food_type": \"%s\",' \
-                                   ' "check_flag": "不合格",' \
-                                   ' "order_by": "0",' \
-                                   ' "pageNo": 0,' \
-                                   ' "pageSize": 20,' \
-                                   ' "bar_code": "",' \
-                                   ' "sampling_province": "",' \
-                                   ' "name_first_letter": null,' \
-                                   ' "food_name": null}' % food_type
-                unqualified_data = {
-                    'filters': unqualified_data
-                }
-                unqualified_request = FormRequest(
-                    url=url, formdata=unqualified_data, meta={'food_type': food_type}, callback=self.unqualified_detail,
-                    dont_filter=False
-                )
+            # 不合格
+            unqualified_data = '{"food_type": \"%s\",' \
+                               ' "check_flag": "不合格",' \
+                               ' "order_by": "0",' \
+                               ' "pageNo": 0,' \
+                               ' "pageSize": 20,' \
+                               ' "bar_code": "",' \
+                               ' "sampling_province": "",' \
+                               ' "name_first_letter": null,' \
+                               ' "food_name": null}' % food_type
+            unqualified_data = {
+                'filters': unqualified_data
+            }
+            unqualified_request = FormRequest(
+                url=url, formdata=unqualified_data, meta={'food_type': food_type}, callback=self.unqualified_detail,
+                dont_filter=False
+            )
 
-                yield qualified_request
+            yield qualified_request
 
-                # yield unqualified_request
-
-        except Exception as e:
-            print(e)
+            yield unqualified_request
 
     # 合格列表
     def qualified_detail(self, response):
@@ -172,36 +168,71 @@ class Foods12331Spider(scrapy.Spider):
     def get_result(self, response):
         res = json.loads(response.text, encoding='utf-8')
         foods = res['resultData']['foods']
-        for fd in foods:
-            food = FoodsItem()
-            food['id'] = fd['id']
-            food['check_no'] = fd['check_no']
-            food['food_brand'] = fd['food_brand']
-            food['production_name'] = fd['production_name']
-            food['production_adress'] = fd['production_adress']
-            food['producing_area'] = fd['producing_area']
-            food['sampling_name'] = fd['sampling_name']
-            food['sampling_province'] = fd['sampling_province']
-            food['sampling_adress'] = fd['sampling_adress']
-            food['food_name'] = fd['food_name']
-            food['food_model'] = fd['food_model']
-            food['food_product_time'] = fd['food_product_time']
-            food['food_type'] = fd['food_type']
-            food['notice_no'] = fd['notice_no']
-            food['check_projiect'] = fd['check_projiect']
-            food['unqualified_reason'] = fd['unqualified_reason']
-            food['bar_code'] = fd['bar_code']
-            food['remark'] = fd['remark']
-            food['check_flag'] = fd['check_flag']
-            food['data_source'] = fd['data_source']
-            print('***********************************')
-            print(food)
-            print('***********************************')
+        if foods:
+            for fd in foods:
+                food = FoodsItem()
+                food['id'] = fd['id']
+                food['check_no'] = fd['check_no']
+                if not fd['food_brand']:
+                    food['food_brand'] = '/'
+                else:
+                    food['food_brand'] = fd['food_brand']
+                food['production_name'] = fd['production_name']
+                food['production_adress'] = fd['production_adress']
+                if not fd['producing_area']:
+                    food['producing_area'] = '/'
+                else:
+                    food['producing_area'] = fd['producing_area']
+                food['sampling_name'] = fd['sampling_name']
+                food['sampling_province'] = fd['sampling_province']
+                if not fd['sampling_adress']:
+                    food['sampling_adress'] = '/'
+                else:
+                    food['sampling_adress'] = fd['sampling_adress']
+                food['food_name'] = fd['food_name']
+                food['food_model'] = fd['food_model']
+                if not fd['food_product_time']:
+                    food['food_product_time'] = self.get_product_time()
+                else:
+                    food['food_product_time'] = fd['food_product_time']
+                food['food_type'] = fd['food_type']
+                food['notice_no'] = fd['notice_no']
+                if not fd['check_projiect']:
+                    food['check_projiect'] = '/'
+                else:
+                    food['check_projiect'] = fd['check_projiect']
+                if not fd['unqualified_reason']:
+                    food['unqualified_reason'] = '/'
+                else:
+                    food['unqualified_reason'] = fd['unqualified_reason']
+                if not fd['bar_code']:
+                    food['bar_code'] = '/'
+                else:
+                    food['bar_code'] = fd['bar_code']
+                if not fd['remark']:
+                    food['remark'] = '/'
+                else:
+                    food['remark'] = fd['remark']
+                food['check_flag'] = fd['check_flag']
+                food['data_source'] = fd['data_source']
+                print('***********************************')
+                print(food)
+                print('***********************************')
 
-            yield food
+                yield food
+        else:
+            print('foods不存在')
 
     @staticmethod
-    def type_list(str):
-        str_list = str.split("'")
+    def type_list(name):
+        str_list = name.split("'")
         res = str_list[1]
         return res
+
+    @staticmethod
+    def get_product_time():
+        timeStamp = time.time() - 3600 * 24 * 30 * 6
+        timeArray = time.localtime(timeStamp)
+        product_time = time.strftime("%Y-%m-%d", timeArray)
+        return product_time
+

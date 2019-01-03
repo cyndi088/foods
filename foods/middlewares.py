@@ -14,9 +14,6 @@ from scrapy.exceptions import NotConfigured
 class RandomProxyMiddleware(object):
     def __init__(self, settings):
         self.proxies = self.get_ip()
-        print('*****************************************************************************')
-        print(self.proxies)
-        print('*****************************************************************************')
         if not self.proxies:
             raise NotConfigured
         self.stats = {}.fromkeys(self.proxies, 0)

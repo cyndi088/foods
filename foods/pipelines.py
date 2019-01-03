@@ -44,5 +44,5 @@ class MongodbPipeline(object):
         return item
 
     def save_foods(self, item):
-        self.db['liangshijiagongpin'].save(dict(item))
+        self.db['food'].save(dict(item))
 
