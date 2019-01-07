@@ -59,8 +59,9 @@ HTTPERROR_ALLOWED_CODES = [401, 400, 500, 502]
 
 # Override the default request headers:
 # DEFAULT_REQUEST_HEADERS = {
-# 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-# 'Accept-Language': 'en',
+#     'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+#     'Accept-Language': 'en',
+#     'Referer': 'http://www.foods12331.cn/web/index.jsp'
 # }
 
 # Enable or disable spider middlewares

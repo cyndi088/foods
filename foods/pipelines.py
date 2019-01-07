@@ -44,5 +44,16 @@ class MongodbPipeline(object):
         return item
 
     def save_foods(self, item):
-        self.db['food'].save(dict(item))
+        self.db['foods'].save(dict(item))
 
+    # @staticmethod
+    # def get_product_time():
+    #     timeStamp = time.time() - 3600 * 24 * 30 * 6
+    #     timeArray = time.localtime(timeStamp)
+    #     product_time = time.strftime("%Y-%m-%d", timeArray)
+    #     return product_time
+    #
+    # @staticmethod
+    # def time_format(time_string):
+    #     res = time_string.st.replace('/', '-')
+    #     return res

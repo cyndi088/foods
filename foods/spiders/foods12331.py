@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import time
 import json
 import scrapy
 from ..items import FoodsItem
@@ -39,7 +38,7 @@ class Foods12331Spider(scrapy.Spider):
             unqualified_data = '{"food_type": \"%s\",' \
                                ' "check_flag": "不合格",' \
                                ' "order_by": "0",' \
-                               ' "pageNo": 0,' \
+                               ' "pageNo": 14,' \
                                ' "pageSize": 20,' \
                                ' "bar_code": "",' \
                                ' "sampling_province": "",' \
@@ -75,10 +74,7 @@ class Foods12331Spider(scrapy.Spider):
             for item in items:
                 formdata = {}
                 formdata['food_name'] = item['food_name']
-                if item['production_name'] == '/':
-                    formdata['production_name'] = '——'
-                else:
-                    formdata['production_name'] = item['production_name']
+                formdata['production_name'] = item['production_name']
                 formdata['food_model'] = item['food_model']
                 request = FormRequest(
                     url=getResultUrl, formdata=formdata, callback=self.get_result, dont_filter=False
@@ -93,7 +89,7 @@ class Foods12331Spider(scrapy.Spider):
                 qualified_data = '{"food_type": \"%s\",' \
                                  ' "check_flag": "合格",' \
                                  ' "order_by": "1",' \
-                                 ' "pageNo": \"%d\",' \
+                                 ' "pageNo": %d,' \
                                  ' "pageSize": 20,' \
                                  ' "bar_code": "",' \
                                  ' "sampling_province": "",' \
@@ -145,7 +141,7 @@ class Foods12331Spider(scrapy.Spider):
                 unqualified_data = '{"food_type": \"%s\" ,' \
                                    ' "check_flag": "不合格",' \
                                    ' "order_by": "0",' \
-                                   ' "pageNo": \"%d\",' \
+                                   ' "pageNo": %d,' \
                                    ' "pageSize": 20,' \
                                    ' "bar_code": "",' \
                                    ' "sampling_province": "",' \
@@ -173,51 +169,24 @@ class Foods12331Spider(scrapy.Spider):
                 food = FoodsItem()
                 food['id'] = fd['id']
                 food['check_no'] = fd['check_no']
-                if not fd['food_brand']:
-                    food['food_brand'] = '/'
-                else:
-                    food['food_brand'] = fd['food_brand']
+                food['food_brand'] = fd['food_brand']
                 food['production_name'] = fd['production_name']
                 food['production_adress'] = fd['production_adress']
-                if not fd['producing_area']:
-                    food['producing_area'] = '/'
-                else:
-                    food['producing_area'] = fd['producing_area']
+                food['producing_area'] = fd['producing_area']
                 food['sampling_name'] = fd['sampling_name']
                 food['sampling_province'] = fd['sampling_province']
-                if not fd['sampling_adress']:
-                    food['sampling_adress'] = '/'
-                else:
-                    food['sampling_adress'] = fd['sampling_adress']
+                food['sampling_adress'] = fd['sampling_adress']
                 food['food_name'] = fd['food_name']
                 food['food_model'] = fd['food_model']
-                if not fd['food_product_time']:
-                    food['food_product_time'] = self.get_product_time()
-                else:
-                    food['food_product_time'] = fd['food_product_time']
+                food['food_product_time'] = fd['food_product_time']
                 food['food_type'] = fd['food_type']
                 food['notice_no'] = fd['notice_no']
-                if not fd['check_projiect']:
-                    food['check_projiect'] = '/'
-                else:
-                    food['check_projiect'] = fd['check_projiect']
-                if not fd['unqualified_reason']:
-                    food['unqualified_reason'] = '/'
-                else:
-                    food['unqualified_reason'] = fd['unqualified_reason']
-                if not fd['bar_code']:
-                    food['bar_code'] = '/'
-                else:
-                    food['bar_code'] = fd['bar_code']
-                if not fd['remark']:
-                    food['remark'] = '/'
-                else:
-                    food['remark'] = fd['remark']
+                food['check_projiect'] = fd['check_projiect']
+                food['unqualified_reason'] = fd['unqualified_reason']
+                food['bar_code'] = fd['bar_code']
+                food['remark'] = fd['remark']
                 food['check_flag'] = fd['check_flag']
                 food['data_source'] = fd['data_source']
-                print('***********************************')
-                print(food)
-                print('***********************************')
 
                 yield food
         else:
@@ -228,11 +197,3 @@ class Foods12331Spider(scrapy.Spider):
         str_list = name.split("'")
         res = str_list[1]
         return res
-
-    @staticmethod
-    def get_product_time():
-        timeStamp = time.time() - 3600 * 24 * 30 * 6
-        timeArray = time.localtime(timeStamp)
-        product_time = time.strftime("%Y-%m-%d", timeArray)
-        return product_time
-
