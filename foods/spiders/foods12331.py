@@ -126,8 +126,15 @@ class Foods12331Spider(scrapy.Spider):
             for item in items:
                 formdata = {}
                 formdata['food_name'] = item['food_name']
-                formdata['production_name'] = item['production_name']
-                formdata['food_model'] = item['food_model']
+                if item['production_name']:
+                    formdata['production_name'] = item['production_name']
+                else:
+                    formdata['production_name'] = None
+                if item['food_model']:
+                    formdata['food_model'] = item['food_model']
+                else:
+                    formdata['food_model'] = None
+
                 request = FormRequest(
                     url=getResultUrl, formdata=formdata, callback=self.get_result, dont_filter=False
                 )
