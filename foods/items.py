@@ -30,6 +30,8 @@ class FoodsItem(scrapy.Item):
     check_flag = scrapy.Field()
     data_source = scrapy.Field()
 
+    qualification = scrapy.Field()
+
     # stampDateTime = scrapy.Field()  # 数据抓取时间
     # id = scrapy.Field()
     # commodityName = scrapy.Field()  # 食品名称

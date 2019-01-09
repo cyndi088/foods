@@ -16,9 +16,9 @@ NEWSPIDER_MODULE = 'foods.spiders'
 
 """MONGODB 配置链接"""
 # MONGO_HOST = '106.14.176.62'
-MONGO_HOST = '192.168.10.125'
+MONGO_HOST = '192.168.10.146'
 MONGO_PORT = 27017
-MONGO_DB = 'zhongshian'
+MONGO_DB = 'test'
 
 """MYSQL 配置链接"""
 MYSQL_HOST = "192.168.10.121"

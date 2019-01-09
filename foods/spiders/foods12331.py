@@ -38,7 +38,7 @@ class Foods12331Spider(scrapy.Spider):
             unqualified_data = '{"food_type": \"%s\",' \
                                ' "check_flag": "不合格",' \
                                ' "order_by": "0",' \
-                               ' "pageNo": 14,' \
+                               ' "pageNo": 0,' \
                                ' "pageSize": 20,' \
                                ' "bar_code": "",' \
                                ' "sampling_province": "",' \
@@ -52,9 +52,9 @@ class Foods12331Spider(scrapy.Spider):
                 dont_filter=False
             )
 
-            yield qualified_request
-
             yield unqualified_request
+
+            yield qualified_request
 
     # 合格列表
     def qualified_detail(self, response):
@@ -77,8 +77,14 @@ class Foods12331Spider(scrapy.Spider):
                 formdata['production_name'] = item['production_name']
                 formdata['food_model'] = item['food_model']
                 request = FormRequest(
-                    url=getResultUrl, formdata=formdata, callback=self.get_result, dont_filter=False
+                    url=getResultUrl, formdata=formdata, callback=self.get_result, dont_filter=False,
+                    meta={'qualification': '合格'}
                 )
+
+                # 检查错误信息
+                if formdata['production_name'] == 'null' or formdata['food_model'] == 'null':
+                    print(item)
+                    continue
 
                 yield request
 
@@ -129,14 +135,15 @@ class Foods12331Spider(scrapy.Spider):
                 if item['production_name']:
                     formdata['production_name'] = item['production_name']
                 else:
-                    formdata['production_name'] = None
+                    formdata['production_name'] = 'null'
                 if item['food_model']:
                     formdata['food_model'] = item['food_model']
                 else:
-                    formdata['food_model'] = None
+                    formdata['food_model'] = 'null'
 
                 request = FormRequest(
-                    url=getResultUrl, formdata=formdata, callback=self.get_result, dont_filter=False
+                    url=getResultUrl, formdata=formdata, callback=self.get_result, dont_filter=False,
+                    meta={'qualification': '不合格'}
                 )
 
                 yield request
@@ -169,8 +176,16 @@ class Foods12331Spider(scrapy.Spider):
 
     # 抽检详情解析
     def get_result(self, response):
-        res = json.loads(response.text, encoding='utf-8')
-        foods = res['resultData']['foods']
+        qualification = response.meta['qualification']  # pipeline校验用
+
+        # 以防返回php错误页
+        foods = None
+        try:
+            res = json.loads(response.text, encoding='utf-8')
+            foods = res['resultData']['foods']
+        except Exception as e:
+            print(e)
+
         if foods:
             for fd in foods:
                 food = FoodsItem()
@@ -194,6 +209,8 @@ class Foods12331Spider(scrapy.Spider):
                 food['remark'] = fd['remark']
                 food['check_flag'] = fd['check_flag']
                 food['data_source'] = fd['data_source']
+
+                food['qualification'] = qualification
 
                 yield food
         else:
