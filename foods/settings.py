@@ -96,6 +96,7 @@ HTTPERROR_ALLOWED_CODES = [401, 400, 500, 502]
 ITEM_PIPELINES = {
     # 'foods.pipelines.FoodsPipeline': 300,
     'foods.pipelines.MongodbPipeline': 350,
+    'scrapy_redis.pipelines.RedisPipeline': 355,
 }
 
 # Enable and configure the AutoThrottle extension (disabled by default)
