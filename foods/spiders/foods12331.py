@@ -3,18 +3,21 @@ import json
 import scrapy
 from ..items import FoodsItem
 from scrapy import FormRequest
+from scrapy_redis.spiders import RedisSpider
 
 
-class Foods12331Spider(scrapy.Spider):
+class Foods12331Spider(RedisSpider):
     name = 'foods12331'
     allowed_domains = ['foods12331.cn']
-    start_urls = ['http://www.foods12331.cn/web/index.jsp']
+    # start_urls = ['http://www.foods12331.cn/web/index.jsp']
+    redis_key = "foods:start_url"
 
     def parse(self, response):
         url = 'http://www.foods12331.cn/food/detail/findFoodByPage.json'
         res = response.xpath("//div[@class='secenddiv']/a/@onclick").extract()
         # 食品类型
         for food_type in res:
+            # 大分类下的小分类
             food_type = self.type_list(food_type)
             # 合格
             qualified_data = '{"food_type": \"%s\",' \
@@ -78,7 +81,7 @@ class Foods12331Spider(scrapy.Spider):
                 formdata['food_model'] = item['food_model']
                 request = FormRequest(
                     url=getResultUrl, formdata=formdata, callback=self.get_result, dont_filter=False,
-                    meta={'qualification': '合格'}
+                    meta={'qualification': '合格', 'food_type': food_type}
                 )
 
                 # 检查错误信息
@@ -143,7 +146,7 @@ class Foods12331Spider(scrapy.Spider):
 
                 request = FormRequest(
                     url=getResultUrl, formdata=formdata, callback=self.get_result, dont_filter=False,
-                    meta={'qualification': '不合格'}
+                    meta={'qualification': '不合格', 'food_type': food_type}
                 )
 
                 yield request
@@ -177,7 +180,7 @@ class Foods12331Spider(scrapy.Spider):
     # 抽检详情解析
     def get_result(self, response):
         qualification = response.meta['qualification']  # pipeline校验用
-
+        food_type = response.meta['food_type']
         # 以防返回php错误页
         foods = None
         try:
@@ -201,7 +204,7 @@ class Foods12331Spider(scrapy.Spider):
                 food['food_name'] = fd['food_name']
                 food['food_model'] = fd['food_model']
                 food['food_product_time'] = fd['food_product_time']
-                food['food_type'] = fd['food_type']
+                food['food_type'] = food_type
                 food['notice_no'] = fd['notice_no']
                 food['check_projiect'] = fd['check_projiect']
                 food['unqualified_reason'] = fd['unqualified_reason']

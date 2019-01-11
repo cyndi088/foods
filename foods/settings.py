@@ -14,11 +14,13 @@ BOT_NAME = 'foods'
 SPIDER_MODULES = ['foods.spiders']
 NEWSPIDER_MODULE = 'foods.spiders'
 
+LOG_LEVEL = "INFO"
+
 """MONGODB 配置链接"""
 # MONGO_HOST = '106.14.176.62'
-MONGO_HOST = '192.168.10.125'
+MONGO_HOST = '106.14.176.62'
 MONGO_PORT = 27017
-MONGO_DB = 'zhongshian'
+MONGO_DB = 'zhejiang'
 
 """MYSQL 配置链接"""
 MYSQL_HOST = "192.168.10.121"
@@ -27,7 +29,14 @@ MYSQL_PASSWORD = '@hzyq20180426..'
 MYSQL_DB = 'yfhunt'
 
 """REDIS 配置链接"""
-REDIS_URL = "redis://192.168.10.125:6379"
+REDIS_URL = "redis://192.168.10.229:6379/15"
+
+# 开启redis调度器
+SCHEDULER = "scrapy_redis.scheduler.Scheduler"
+# 开启redis过滤
+DUPEFILTER_CLASS = "scrapy_redis.dupefilter.RFPDupeFilter"
+# 持久化
+SCHEDULER_PERSIST = True
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
 USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) ' \
@@ -42,7 +51,7 @@ ROBOTSTXT_OBEY = False
 # Configure a delay for requests for the same website (default: 0)
 # See https://doc.scrapy.org/en/latest/topics/settings.html#download-delay
 # See also autothrottle settings and docs
-# DOWNLOAD_DELAY = 3
+# DOWNLOAD_DELAY = 0.1
 # The download delay setting will honor only one of:
 # CONCURRENT_REQUESTS_PER_DOMAIN = 16
 # CONCURRENT_REQUESTS_PER_IP = 16
@@ -72,9 +81,9 @@ HTTPERROR_ALLOWED_CODES = [401, 400, 500, 502]
 
 # Enable or disable downloader middlewares
 # See https://doc.scrapy.org/en/latest/topics/downloader-middleware.html
-DOWNLOADER_MIDDLEWARES = {
-   'foods.middlewares.RandomProxyMiddleware': 543,
-}
+# DOWNLOADER_MIDDLEWARES = {
+#    'foods.middlewares.RandomProxyMiddleware': 543,
+# }
 
 # Enable or disable extensions
 # See https://doc.scrapy.org/en/latest/topics/extensions.html
