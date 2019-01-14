@@ -308,12 +308,13 @@ class MongodbPipeline(object):
                 date_list = [date_str[:4], date_str[4:6], date_str[6:8]]
                 return datetime(*[int(i) for i in date_list])
             # 匹配格式化日期
-            elif re.search(r'\d{4}.*?\d{1,2}.*?\d{1,2}', proc_date):
-                date_list = re.findall(r'(\d{4}).*?(\d{1,2}).*?(\d{1,2})', proc_date)[0]  # [(...), (...), ...]
+            elif re.search(r'201\d.*?\d{1,2}.*?\d{1,2}', proc_date):
+                date_list = re.findall(r'(201\d).*?(\d{1,2}).*?(\d{1,2})', proc_date)[0]  # [(...), (...), ...]
+
                 return datetime(*[int(i) for i in date_list])
             # 匹配不完整格式
-            elif re.search(r'\d{4}.*?\d{1,2}|\d{4}', proc_date):
-                date_str = re.search(r'\d{4}.*?\d{1,2}|\d{4}', proc_date).group()
+            elif re.search(r'201\d.*?\d{1,2}|201\d', proc_date):
+                date_str = re.search(r'201\d.*?\d{1,2}|201\d', proc_date).group()
                 # 只能匹配到年
                 if len(date_str) == 4:
                     m = random.randint(1, 12)
@@ -322,7 +323,7 @@ class MongodbPipeline(object):
                     return datetime(*[int(i) for i in date_list])
                 # 匹配到年和月
                 else:
-                    time_tuple = re.findall(r'(\d{4}).*?(\d{1,2})', proc_date)[0]
+                    time_tuple = re.findall(r'(201\d).*?(\d{1,2})', proc_date)[0]
                     d = random.randint(1, 19)
                     date_list = [time_tuple[0], time_tuple[1], d]
                     return datetime(*[int(i) for i in date_list])
@@ -390,12 +391,13 @@ class MongodbPipeline(object):
             #
 
             # 任何情况下公告日期和公告号, 应该在同年
-            ggrq_year = proc_date_year
+            ggrq_year = ggh_year
             # 生产日期和公告号同年
             if ggh_year == proc_date_year:
                 ggrq_mon = random.randint(production_date.month, 12)
             # 公告号是隔年的
             elif ggh_year > proc_date_year:
+                # 公告日期的月份在1月和公告号月份之间随机
                 ggrq_mon = random.randint(1, ggh_date.month)
             else:
                 # 公告时间在生产日期之前, 不可能的情况, 使用生产日期的年份
