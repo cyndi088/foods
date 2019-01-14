@@ -29,7 +29,7 @@ MYSQL_PASSWORD = '@hzyq20180426..'
 MYSQL_DB = 'yfhunt'
 
 """REDIS 配置链接"""
-REDIS_URL = "redis://192.168.10.229:6379/15"
+REDIS_URL = "redis://192.168.10.125:6379/15"
 
 # 开启redis调度器
 SCHEDULER = "scrapy_redis.scheduler.Scheduler"

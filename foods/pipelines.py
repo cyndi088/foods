@@ -314,19 +314,27 @@ class MongodbPipeline(object):
             # 匹配不完整格式
             elif re.search(r'\d{4}.*?\d{1,2}|\d{4}', proc_date):
                 date_str = re.search(r'\d{4}.*?\d{1,2}|\d{4}', proc_date).group()
+                # 只能匹配到年
                 if len(date_str) == 4:
                     m = random.randint(1, 12)
                     d = random.randint(1, 19)
                     date_list = [date_str, m, d]
                     return datetime(*[int(i) for i in date_list])
+                # 匹配到年和月
                 else:
                     time_tuple = re.findall(r'(\d{4}).*?(\d{1,2})', proc_date)[0]
                     d = random.randint(1, 19)
                     date_list = [time_tuple[0], time_tuple[1], d]
                     return datetime(*[int(i) for i in date_list])
-        # 匹配非20开头的日期
-        elif re.search(r'20\d{2}.*?\d{1,2}.*?\d{1,2}', proc_date):
-            date_list = re.findall(r'(\d{4}).*?(\d{1,2}).*?(\d{1,2})', proc_date)[0]
+        # 匹配非20开头的日期, 并且包含格式化年月日的
+        elif re.search(r'201\d.*?\d{1,2}.*?\d{1,2}', proc_date):
+            date_list = re.findall(r'(201\d).*?(\d{1,2}).*?(\d{1,2})', proc_date)[0]
+            # 月份不合法
+            if date_list[1] not in range(1, 13):
+                return '/'
+            # 日期不合法
+            if date_list[2] not in range(1, 32):
+                return '/'
             return datetime(*[int(i) for i in date_list])
         else:
             return '/'
@@ -338,10 +346,15 @@ class MongodbPipeline(object):
 
         production_date = self.get_production_time(proc_date)
 
+        # 没有公告号和生产日期
         if production_date == "/" and ggh_date == "/":
             now = datetime.now()
             ggrq_date = now - timedelta(days=30 * random.randint(3, 6))
-            production_date = ggrq_date - timedelta(days=30 * random.randint(3, 6))
+            try:
+                production_date = ggrq_date - timedelta(days=30 * random.randint(3, 6))
+            except Exception as e:
+                print(e)
+                production_date = ggrq_date - timedelta(days=31 * random.randint(3, 6))
             return ggrq_date, production_date
         # 没有生产日期
         elif ggh_date != "/" and production_date == "/":
@@ -349,7 +362,7 @@ class MongodbPipeline(object):
             ggrq_date = datetime(year=ggh_date.year, month=random.randint(1, 6), day=random.randint(1, 19))
             production_date = ggrq_date - timedelta(days=30 * random.randint(3, 6))
             return ggrq_date, production_date
-        # 没有公告好
+        # 没有公告号
         elif production_date != "/" and ggh_date == "/":
             # 使用生产日期的时间 随机增加3到6个月
             ggrq_date = production_date + timedelta(days=30 * random.randint(3, 6))
@@ -360,20 +373,34 @@ class MongodbPipeline(object):
             production_date = self.get_production_time(proc_date)
             proc_date_year = production_date.year
             # 公告日期必须在生产日期之后
-            if ggh_year == proc_date_year:
-                ggrq_year = ggh_year
-                # 在生产月份和当年12月之间随机
-                ggrq_mon = random.randint(production_date.month, 12)
-                ggrq_day = random.randint(1, 19)
+            # if ggh_year == proc_date_year:
+            #     ggrq_year = ggh_year
+            #     # 在生产月份和当年12月之间随机
+            #     ggrq_mon = random.randint(production_date.month, 12)
+            #     ggrq_day = random.randint(1, 19)
             # 公开日期在2017, 生产日期在2016
             # elif ggh_year > proc_date_year:
             #     ggrq_year = proc_date_year
             #     ggrq_mon = random.randint(production_date.month, 12)
             #     ggrq_day = random.randint(1, 19)
-            else:
-                ggrq_year = proc_date_year
+            # else:
+            #     ggrq_year = proc_date_year
+            #     ggrq_mon = random.randint(production_date.month, 12)
+            #     ggrq_day = random.randint(1, 19)
+            #
+
+            # 任何情况下公告日期和公告号, 应该在同年
+            ggrq_year = proc_date_year
+            # 生产日期和公告号同年
+            if ggh_year == proc_date_year:
                 ggrq_mon = random.randint(production_date.month, 12)
-                ggrq_day = random.randint(1, 19)
+            # 公告号是隔年的
+            elif ggh_year > proc_date_year:
+                ggrq_mon = random.randint(1, ggh_date.month)
+            else:
+                # 公告时间在生产日期之前, 不可能的情况, 使用生产日期的年份
+                ggrq_mon = random.randint(production_date.month, 12)
+            ggrq_day = random.randint(1, 19)
 
             ggrq_date = datetime(int(ggrq_year), int(ggrq_mon), int(ggrq_day))
             return ggrq_date, production_date
