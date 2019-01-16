@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import json
-import scrapy
+# import scrapy
 from ..items import FoodsItem
 from scrapy import FormRequest
 from scrapy_redis.spiders import RedisSpider

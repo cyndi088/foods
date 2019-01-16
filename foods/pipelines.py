@@ -118,7 +118,7 @@ class MongodbPipeline(object):
         food['note'] = '/'
 
         food['trademark'] = self.check_null(item['food_brand'])
-        food['unqualifiedItem'] = self.check_null(item['check_projiect'])
+        food['unqualifiedItem'] = self.check_null(item['unqualified_reason'])
         food['checkResult'] = '/'
         food['standardValue'] = '/'
         food['batchNumber'] = '/'
@@ -216,61 +216,6 @@ class MongodbPipeline(object):
         else:
             return 82
 
-            # food = FoodsItem()
-            # if item['qualification'] == '不合格' and item['check_flag'] == '合格':
-            #     return
-            # else:
-            # food['id'] = item['id']
-            # food['check_no'] = item['check_no']
-            # if not item['food_brand']:
-            #     food['food_brand'] = '/'
-            # else:
-            #     food['food_brand'] = item['food_brand']
-            # food['production_name'] = item['production_name']
-            # food['production_adress'] = item['production_adress']
-            # if not item['producing_area']:
-            #     food['producing_area'] = '/'
-            # else:
-            #     food['producing_area'] = item['producing_area']
-            # food['sampling_name'] = item['sampling_name']
-            # food['sampling_province'] = item['sampling_province']
-            # if not item['sampling_adress']:
-            #     food['sampling_adress'] = '/'
-            # else:
-            #     food['sampling_adress'] = item['sampling_adress']
-            # food['food_name'] = item['food_name']
-            # food['food_model'] = item['food_model']
-            # if not item['food_product_time']:
-            #     # food['food_product_time'] = self.get_product_time()
-            #     food['food_product_time'] = '/'
-            # else:
-            #     food['food_product_time'] = item['food_product_time']
-            # food['food_type'] = item['food_type']
-            # food['notice_no'] = item['notice_no']
-            # if not item['check_projiect']:
-            #     food['check_projiect'] = '/'
-            # else:
-            #     food['check_projiect'] = item['check_projiect']
-            # if not item['unqualified_reason']:
-            #     food['unqualified_reason'] = '/'
-            # else:
-            #     food['unqualified_reason'] = item['unqualified_reason']
-            # if not item['bar_code']:
-            #     food['bar_code'] = '/'
-            # else:
-            #     food['bar_code'] = item['bar_code']
-            # if not item['remark']:
-            #     food['remark'] = '/'
-            # else:
-            #     food['remark'] = item['remark']
-            # food['check_flag'] = item['check_flag']
-            # food['data_source'] = item['data_source']
-            # print('***********************************')
-            # print(food)
-            # print('***********************************')
-            # self.save_foods(food)
-        # return item
-
     @staticmethod
     def get_check_id(check_name):
         if check_name:
@@ -304,7 +249,7 @@ class MongodbPipeline(object):
         if proc_date.startswith('201'):
             # 匹配8位纯数字
             if re.match(r'\d{8}$', proc_date):
-                date_str = re.findall('\d{8}$', proc_date)[0]
+                date_str = re.findall(r'\d{8}$', proc_date)[0]
                 date_list = [date_str[:4], date_str[4:6], date_str[6:8]]
                 return datetime(*[int(i) for i in date_list])
             # 匹配格式化日期
@@ -406,19 +351,6 @@ class MongodbPipeline(object):
 
             ggrq_date = datetime(int(ggrq_year), int(ggrq_mon), int(ggrq_day))
             return ggrq_date, production_date
-
-    def get_ggrq_date(self, proc_date, ggh):
-        ggh_date = self.check_with_ggh(ggh)
-        ggh_year = ggh_date.year
-
-        proc_year = proc_date.year
-
-        if ggh_year >= proc_year:
-            ggrq_date = ggh_date + timedelta(days=30 * random.randint(1, 3))
-            return ggrq_date
-        else:
-            ggrq_date = ggh_date + timedelta(days=15)
-            return ggrq_date
 
     def save_foods(self, item):
         print(item)

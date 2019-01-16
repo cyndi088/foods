@@ -18,18 +18,18 @@ LOG_LEVEL = "INFO"
 
 """MONGODB 配置链接"""
 # MONGO_HOST = '106.14.176.62'
-MONGO_HOST = '106.14.176.62'
+MONGO_HOST = 'your mongodb host'
 MONGO_PORT = 27017
-MONGO_DB = 'zhejiang'
+MONGO_DB = 'db_name'
 
 """MYSQL 配置链接"""
-MYSQL_HOST = "192.168.10.121"
-MYSQL_USER = 'hzyg'
-MYSQL_PASSWORD = '@hzyq20180426..'
-MYSQL_DB = 'yfhunt'
+MYSQL_HOST = "your mysql host"
+MYSQL_USER = 'username'
+MYSQL_PASSWORD = 'password'
+MYSQL_DB = 'db_name'
 
 """REDIS 配置链接"""
-REDIS_URL = "redis://192.168.10.125:6379/14"
+REDIS_URL = "redis://host:port/db"
 
 # 开启redis调度器
 SCHEDULER = "scrapy_redis.scheduler.Scheduler"
